@@ -73,6 +73,7 @@ unit_isPrime = do
     assertBool "isPrime 17" $ isPrime 17
     assertBool "isPrime 23" $ isPrime 23
     assertBool "isPrime 2" $ isPrime 2
+    assertBool "not isPrime 1" $ not $ isPrime 1
     assertBool "not isPrime 9" $ not $ isPrime 9
     assertBool "not isPrime 8" $ not $ isPrime 8
     assertBool "not isPrime 121" $ not $ isPrime 121
