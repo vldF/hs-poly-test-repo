@@ -28,15 +28,14 @@ class Matrix mx where
        -- Перемножение матриц
        multiplyMatrix :: mx -> mx -> mx
 
-       -- Определитель матрицы
-       determinant ::  mx -> Int
-
        element :: mx -> Int -> Int -> Int
        column :: mx -> Int -> [Int]
        row :: mx -> Int -> [Int]
 
        columns :: mx -> Int
        rows :: mx -> Int
+
+       asListList :: mx -> [[Int]]
 
 
 -- Определите экземпляры данного класса для:
@@ -48,7 +47,6 @@ instance Matrix Int where
        zero _ _ = 0
 
        multiplyMatrix m1 m2 = m1 * m2
-       determinant m = m
 
        element mx _ _ = mx
        column mx _ = [mx]
@@ -56,6 +54,8 @@ instance Matrix Int where
 
        columns _ = 1
        rows _ = 1
+
+       asListList mx = [[mx]]
 
 instance Matrix [[Int]] where
        eye i = Prelude.map (\x -> (replicate x 0 ++ [1]) ++ replicate (i - x - 1) 0) [0..(i-1)]
@@ -65,11 +65,12 @@ instance Matrix [[Int]] where
        column mx i = Prelude.map (!! i) mx
        row mx i = mx !! i
 
-       multiplyMatrix m1 m2 = Prelude.map (\m1row -> Prelude.map (\m2col -> dot (row m1 m1row) (column m2 m2col)) [0..(columns m2 - 1)]) [0..(rows m1 - 1)]
-       determinant m = notImplementedYet
-
+       multiplyMatrix m1 m2 = Prelude.map (\m1row -> Prelude.map (dot (row m1 m1row) . column m2) [0..(columns m2 - 1)]) [0..(rows m1 - 1)]
+       
        columns mx = length (head mx)
        rows = length
+
+       asListList mx = mx
 
 instance Matrix (SparseMatrix Int) where
        eye i = SparseMatrix w h (Data.Map.fromList d) where
@@ -87,11 +88,23 @@ instance Matrix (SparseMatrix Int) where
               w = sparseMatrixWidth m2
               h = sparseMatrixHeight m1
               d = Prelude.map (\m1row -> Prelude.map (\m2col -> ((m2col, m1row), dot (row m1 m1row) (column m2 m2col))) [0..(columns m2 - 1)]) [0..(rows m1 - 1)]
-       determinant m = notImplementedYet
+
        columns = sparseMatrixWidth
        rows = sparseMatrixHeight
+
+       asListList mx = Prelude.map (\column -> Prelude.map (element mx column) [0..(rows mx - 1)]) [0..(columns mx - 1)]
 
 dot :: [Int] -> [Int] -> Int
 dot v1 v2 = sum (zipWith (*) v1 v2)
 
-sMatrixToMatrix mx = Prelude.map (\column -> Prelude.map (element mx column) [0..(rows mx - 1)]) [0..(columns mx - 1)]
+determinant :: Matrix mx => mx -> Int
+determinant m = determinant' (asListList m)
+
+determinant' :: [[Int]] -> Int
+determinant' m
+              | columns m /= rows m = -100000000
+              | columns m == 1 = element m 0 0
+              | columns m == 2 = element m 0 0 * element m 1 1 - element m 1 0 * element m 0 1
+              | otherwise = Prelude.sum (Prelude.map (\col -> ((-1) ^ (col)) * (element m 0 col) * determinant (smaller_matrix m col)) [0..(columns m - 1)])
+              where
+                     smaller_matrix m col = Prelude.map (\row -> Prelude.take col row ++ Prelude.drop (col+1) row) (Prelude.drop 1 m)
