@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 module Part1.Tasks where
 
 import Util(notImplementedYet)
@@ -23,8 +22,6 @@ calculateTaylorForSin x prev i t = res where
           else current : calculateTaylorForSin x current (i+2.0) (t + 1)
 
 fact n = if n == 0 then 1 else n * fact (n-1)
-fact n = foldl (*) 1 [1..n]
-fact n = product [1..n]
 
 -- косинус числа (формула Тейлора)
 myCos :: Double -> Double
