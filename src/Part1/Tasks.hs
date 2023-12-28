@@ -1,18 +1,41 @@
+{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 module Part1.Tasks where
 
 import Util(notImplementedYet)
+import Debug.Trace (trace)
 
 -- синус числа (формула Тейлора)
 mySin :: Double -> Double
-mySin = notImplementedYet
+mySin x = mySin' (normalizeSinArg x)
+
+normalizeSinArg x
+  | x >= 2 * pi = normalizeSinArg (x - 2 * pi)
+  | abs x >= 2 * pi = normalizeSinArg (x + 2 * pi)
+  | otherwise = x
+
+mySin' :: Double -> Double
+mySin' x = sum (x : calculateTaylorForSin x x 3.0 1.0)
+
+calculateTaylorForSin x prev i t = res where
+      current = (-1) ** t * (x ** i) / fact i
+      res = if abs (current - prev) <= 0.0001
+          then [current]
+          else current : calculateTaylorForSin x current (i+2.0) (t + 1)
+
+fact n = if n == 0 then 1 else n * fact (n-1)
+fact n = foldl (*) 1 [1..n]
+fact n = product [1..n]
 
 -- косинус числа (формула Тейлора)
 myCos :: Double -> Double
-myCos = notImplementedYet
+myCos x = mySin (x + pi / 2)
 
 -- наибольший общий делитель двух чисел
 myGCD :: Integer -> Integer -> Integer
-myGCD = notImplementedYet
+myGCD a b
+  | a == 0 = abs b
+  | b == 0 = abs a
+  | otherwise = myGCD b (mod a b)
 
 -- является ли дата корректной с учётом количества дней в месяце и
 -- вискокосных годов?
@@ -55,7 +78,7 @@ type Point2D = (Double, Double)
 -- рассчитайте площадь многоугольника по формуле Гаусса
 -- многоугольник задан списком координат
 shapeArea :: [Point2D] -> Double
-shapeArea points = abs((shapeAreaInternal (points ++ take 1 points) - shapeAreaInternal (invert (points ++ take 1 points))) / 2.0)
+shapeArea points = abs ((shapeAreaInternal (points ++ take 1 points) - shapeAreaInternal (invert (points ++ take 1 points))) / 2.0)
 -- shapeArea = notImplementedYet
 
 invert ((a,b):tail) = (b,a) : invert tail
@@ -79,11 +102,11 @@ triangleKind a b c = let greatest = max a (max b c)
                          isImpossible = greatest > lowest + middlest
                          isRight = greatest ** 2.0 == lowest ** 2.0 + middlest ** 2
                          isObtuse = greatest ** 2.0 < lowest ** 2.0 + middlest ** 2
-                     in case () of 
+                     in case () of
                        _ | isImpossible -> -1
                          | isRight -> 2
                          | isObtuse -> 1
                          | otherwise -> 0
 
 
-    
+
