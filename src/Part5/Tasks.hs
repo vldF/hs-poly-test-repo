@@ -33,8 +33,11 @@ myReverse = myFoldl concat [] where
     concat acc new = new : acc
 
 myFilter :: (a -> Bool) -> [a] -> [a]
-myFilter p = notImplementedYet
+myFilter p = myFoldr filter_ [] where
+    filter_ new acc = if p new
+        then new : acc
+        else acc
 
 myPartition :: (a -> Bool) -> [a] -> ([a], [a])
-myPartition p = notImplementedYet
+myPartition p lst = (myFilter p lst, myFilter (not . p) lst)
 
